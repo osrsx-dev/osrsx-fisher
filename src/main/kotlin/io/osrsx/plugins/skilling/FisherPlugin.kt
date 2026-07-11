@@ -8,7 +8,6 @@ import io.osrsx.config.PluginConfig
 import io.osrsx.config.isFalse
 import io.osrsx.config.isTrue
 import io.osrsx.plugin.HasOverlay
-import io.osrsx.plugin.PluginDescriptor
 import io.osrsx.plugin.ScriptGui
 import io.osrsx.script.Script
 import io.osrsx.script.ScriptDslPlugin
@@ -24,12 +23,6 @@ import io.osrsx.script.ScriptDslPlugin
  * (buying any shortfall off the GE when "Buy missing from GE" is on), then travels to a spot and fishes,
  * banking or dropping the catch when full. "Auto" picks the best method for your level and its fish.
  */
-@PluginDescriptor(
-    name = "Fisher",
-    description = "Fishes at a spot and drops or banks the catch.",
-    author = "osrsx",
-    tags = ["skilling", "fishing", "gathering"],
-)
 class FisherPlugin : ScriptDslPlugin(), HasOverlay {
 
     object Config : PluginConfig("fisher") {
