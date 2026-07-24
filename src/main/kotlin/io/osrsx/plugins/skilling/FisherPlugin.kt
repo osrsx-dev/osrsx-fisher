@@ -1,19 +1,18 @@
 package io.osrsx.plugins.skilling
 
-import io.osrsx.api.ItemRef
-import io.osrsx.api.RestockSpec
-import io.osrsx.api.Skill
-import io.osrsx.api.loadout
-import io.osrsx.config.PluginConfig
-import io.osrsx.config.isFalse
-import io.osrsx.config.isTrue
-import io.osrsx.plugin.HasOverlay
-import io.osrsx.plugin.ScriptGui
+import io.osrsx.api.items.ItemRef
+import io.osrsx.api.economy.RestockSpec
+import io.osrsx.api.player.Skill
+import io.osrsx.api.economy.loadout
+import io.osrsx.plugin.PluginSettings
+import io.osrsx.plugin.isFalse
+import io.osrsx.plugin.isTrue
+import io.osrsx.plugin.Gfx2D
 import io.osrsx.script.Script
-import io.osrsx.script.ScriptDslPlugin
+import io.osrsx.script.ScriptPlugin
 
 /**
- * Fishing plugin, authored with the **Script DSL** ([ScriptDslPlugin]) over the shared [skillGatherScript].
+ * Fishing plugin, authored with the **Script DSL** ([ScriptPlugin]) over the shared [skillGatherScript].
  * Fishing spots are NPCs (not objects), so the resource lambda queries [npcs] and the gather action is the
  * fishing method ("Small Net", "Bait", "Lure", "Cage", "Harpoon").
  *
@@ -23,9 +22,9 @@ import io.osrsx.script.ScriptDslPlugin
  * (buying any shortfall off the GE when "Buy missing from GE" is on), then travels to a spot and fishes,
  * banking or dropping the catch when full. "Auto" picks the best method for your level and its fish.
  */
-class FisherPlugin : ScriptDslPlugin(), HasOverlay {
+class FisherPlugin : ScriptPlugin() {
 
-    object Config : PluginConfig("fisher") {
+    object Config : PluginSettings("fisher") {
         var auto by boolItem("auto", "Auto-select method", false,
             "Pick the best fishing method for your level (ignores Method/Catch below)", section = "Setup")
         // The manual spot/method/catch are ignored while "Auto-select" is on — so hide them then.
@@ -54,7 +53,7 @@ class FisherPlugin : ScriptDslPlugin(), HasOverlay {
         var stopAfterMins by intItem("stopAfterMins", "Stop after (min)", 0, 0, 100_000, "Stop after this many minutes (0 = never)", "Stopping")
     }
 
-    override fun config() = Config
+    override fun settings() = Config
 
     private val stats by lazy { SkillStats(ctx, Skill.FISHING) }
     private val stops by lazy {
@@ -118,15 +117,16 @@ class FisherPlugin : ScriptDslPlugin(), HasOverlay {
         )
     )
 
-    override fun overlayTitle() = "Fishing"
-
-    override fun onOverlay(gui: ScriptGui) {
-        val each = catchNames().maxOfOrNull { prices.price(it) } ?: 0
-        SkillOverlay.render(gui, stats, listOf(
-            "Method" to methodAction(),
-            (if (Config.bank) "Fish banked" else "Fish dropped")
-                to "${SkillOverlay.commas(stats.output())} (${SkillOverlay.compact(stats.perHour(stats.output() * each))} gp/hr)",
-        ))
+    override fun onPanel(gfx: Gfx2D) {
+        // A single named overlay window (and nothing at the root) keeps the old "Fishing" title.
+        gfx.overlay("Fishing") { gui ->
+            val each = catchNames().maxOfOrNull { prices.price(it) } ?: 0
+            SkillOverlay.render(gui, stats, listOf(
+                "Method" to methodAction(),
+                (if (Config.bank) "Fish banked" else "Fish dropped")
+                    to "${SkillOverlay.commas(stats.output())} (${SkillOverlay.compact(stats.perHour(stats.output() * each))} gp/hr)",
+            ))
+        }
     }
 
     private companion object {
