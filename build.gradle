@@ -9,5 +9,5 @@ osrsxPlugin {
     description = 'Fishes at a spot and drops or banks the catch.'
     authors = ['osrsx']
     tags = ['skilling', 'fishing', 'gathering']
-    requires 'skilling-lib:1.3.0'
+    requires 'skilling-lib:1.4.0'
 }
